@@ -1348,15 +1348,33 @@ static navigationFSMEvent_t navOnEnteringState_NAV_STATE_WAYPOINT_INITIALIZE(nav
         return NAV_FSM_EVENT_ERROR;
     }
     else {
-        // Prepare controllers
-        resetPositionController();
+        fpVector3_t startingWaypointPos;
+        gpsLocation_t wpLLH;
 
-        // Make sure surface tracking is not enabled - RTH uses global altitude, not AGL
-        resetAltitudeController(false);
-        setupAltitudeController();
+        wpLLH.lat = posControl.waypointList[0].lat;
+        wpLLH.lon = posControl.waypointList[0].lon;
+        wpLLH.alt = posControl.waypointList[0].alt;
 
-        posControl.activeWaypointIndex = 0;
-        return NAV_FSM_EVENT_SUCCESS;   // will switch to NAV_STATE_WAYPOINT_PRE_ACTION
+        geoConvertGeodeticToLocal(&startingWaypointPos, &posControl.gpsOrigin, &wpLLH, GEO_ALT_RELATIVE);
+
+        const bool navWpMissionStartTooFar = calculateDistanceToDestination(&startingWaypointPos) > navConfig()->general.waypoint_safe_distance;
+
+        // Don't allow waypoint initialize if first waypoint is farther than configured safe distance
+        if (navWpMissionStartTooFar) {
+            NAV_Status.state = MW_NAV_STATE_TOOFAR;
+            return NAV_FSM_EVENT_ERROR;
+        }
+        else {
+            // Prepare controllers
+            resetPositionController();
+
+            // Make sure surface tracking is not enabled - RTH uses global altitude, not AGL
+            resetAltitudeController(false);
+            setupAltitudeController();
+
+            posControl.activeWaypointIndex = 0;
+            return NAV_FSM_EVENT_SUCCESS;   // will switch to NAV_STATE_WAYPOINT_PRE_ACTION
+        }
     }
 }
 
@@ -3042,18 +3060,6 @@ navArmingBlocker_e navigationIsBlockingArming(bool *usedBypass)
     // Don't allow arming if any of NAV modes is active
     if (!ARMING_FLAG(ARMED) && navBoxModesEnabled && !navLaunchComboModesEnabled) {
         return NAV_ARMING_BLOCKER_NAV_IS_ALREADY_ACTIVE;
-    }
-
-    // Don't allow arming if first waypoint is farther than configured safe distance
-    if (posControl.waypointCount > 0) {
-        fpVector3_t startingWaypointPos;
-        mapWaypointToLocalPosition(&startingWaypointPos, &posControl.waypointList[0]);
-
-        const bool navWpMissionStartTooFar = calculateDistanceToDestination(&startingWaypointPos) > navConfig()->general.waypoint_safe_distance;
-
-        if (navWpMissionStartTooFar) {
-            return NAV_ARMING_BLOCKER_FIRST_WAYPOINT_TOO_FAR;
-        }
     }
 
     return NAV_ARMING_BLOCKER_NONE;

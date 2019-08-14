@@ -650,8 +650,6 @@ static const char * osdArmingDisabledReasonMessage(void)
                     return OSD_MESSAGE_STR("WAITING FOR GPS FIX");
                 case NAV_ARMING_BLOCKER_NAV_IS_ALREADY_ACTIVE:
                     return OSD_MESSAGE_STR("DISABLE NAVIGATION FIRST");
-                case NAV_ARMING_BLOCKER_FIRST_WAYPOINT_TOO_FAR:
-                    return OSD_MESSAGE_STR("FIRST WAYPOINT IS TOO FAR");
             }
 #endif
             break;
@@ -788,6 +786,8 @@ static const char * navigationStateMessage(void)
         case MW_NAV_STATE_HOLD_TIMED:
             // Not used anymore
             break;
+        case MW_NAV_STATE_TOOFAR:
+            return OSD_MESSAGE_STR("WAYPOINT IS TOO FAR");
         case MW_NAV_STATE_WP_ENROUTE:
             // TODO: Show WP number
             return OSD_MESSAGE_STR("EN ROUTE TO WAYPOINT");

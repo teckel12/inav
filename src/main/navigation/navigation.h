@@ -100,7 +100,6 @@ typedef enum {
     NAV_ARMING_BLOCKER_NONE = 0,
     NAV_ARMING_BLOCKER_MISSING_GPS_FIX = 1,
     NAV_ARMING_BLOCKER_NAV_IS_ALREADY_ACTIVE = 2,
-    NAV_ARMING_BLOCKER_FIRST_WAYPOINT_TOO_FAR = 3,
 } navArmingBlocker_e;
 
 typedef struct positionEstimationConfig_s {
@@ -333,6 +332,7 @@ typedef enum {
     MW_NAV_STATE_LAND_START_DESCENT,      // Start descent
     MW_NAV_STATE_HOVER_ABOVE_HOME,        // Hover/Loitering above home
     MW_NAV_STATE_EMERGENCY_LANDING,       // Emergency landing
+    MW_NAV_STATE_TOOFAR                   // First waypoint distance is more than safety distance
 } navSystemStatus_State_e;
 
 typedef enum {
